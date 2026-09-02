@@ -27,15 +27,19 @@ conectarConBD()
 // inicialización de app con express
 const app = express();
 
+
 app.use(cors())
+app.use(express.static('public'));
 
 // recibir datos en formato JSON
 app.use(express.json()); // req.body
 
 // creación de Rutas (URLS) End Points (API REST)
-app.get("/", function(req, res){
-    return res.json({mensaje: "Hola desde Node.js"});
-})
+// app.get("/", function(req, res){
+//     return res.json({mensaje: "Hola desde Node.js"});
+// })
+
+
 // Lista de Libros
 app.get("/libro", async function(req, res){
     const [ results ] = await sequelize.query("SELECT * from libros");

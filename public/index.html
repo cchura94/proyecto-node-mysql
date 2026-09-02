@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Biblioteca | Panel Administrador</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9',
+              600: '#0284c7', 700: '#0369a1', 800: '#075985',
+              900: '#0c4a6e'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .sidebar-transition { transition: transform .25s ease, width .25s ease; }
+    .modal-bg { background: rgba(15, 23, 42, .55); backdrop-filter: blur(3px); }
+    .table-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+    .table-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    .toast { animation: toastIn .25s ease-out; }
+    @keyframes toastIn { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .nav-active { background: #e0f2fe; color: #0369a1; font-weight: 700; }
+  </style>
+</head>
+
+<body class="bg-slate-100 text-slate-800">
+
+<div id="toast-container" class="fixed top-5 right-5 z-[100] space-y-3 w-[360px] max-w-[calc(100vw-2rem)]"></div>
+
+<div class="min-h-screen flex">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar"
+    class="sidebar-transition fixed lg:static z-50 inset-y-0 left-0 w-72 bg-white border-r border-slate-200 -translate-x-full lg:translate-x-0 flex flex-col">
+
+    <div class="h-20 px-6 flex items-center gap-3 border-b border-slate-200">
+      <div class="w-11 h-11 rounded-xl bg-brand-600 text-white flex items-center justify-center shadow">
+        <i data-lucide="library-big" class="w-6 h-6"></i>
+      </div>
+      <div>
+        <h1 class="font-extrabold text-lg leading-tight">Biblioteca</h1>
+        <p class="text-xs text-slate-500">Panel administrador</p>
+      </div>
+    </div>
+
+    <nav class="p-4 space-y-1 overflow-y-auto flex-1">
+      <p class="px-3 pt-2 pb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">Principal</p>
+
+      <button data-section="dashboard" class="nav-btn nav-active w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm">
+        <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
+      </button>
+
+      <p class="px-3 pt-5 pb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">Catálogo</p>
+
+      <button data-section="libros" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
+        <i data-lucide="book-open" class="w-5 h-5"></i> Libros
+      </button>
+      <button data-section="categorias" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
+        <i data-lucide="tags" class="w-5 h-5"></i> Categorías
+      </button>
+      <button data-section="autores" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
+        <i data-lucide="user-round" class="w-5 h-5"></i> Autores
+      </button>
+      <button data-section="autor-libro" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
+        <i data-lucide="link-2" class="w-5 h-5"></i> Autores ↔ Libros
+      </button>
+      <button data-section="ejemplares" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
+        <i data-lucide="copy" class="w-5 h-5"></i> Ejemplares
+      </button>
+
+      <p class="px-3 pt-5 pb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">Usuarios</p>
+
+      <button data-section="usuarios" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
+        <i data-lucide="users" class="w-5 h-5"></i> Usuarios
+      </button>
+      <button data-section="carnets" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
+        <i data-lucide="id-card" class="w-5 h-5"></i> Carnets
+      </button>
+
+      <p class="px-3 pt-5 pb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">Circulación</p>
+
+      <button data-section="prestamos" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
+        <i data-lucide="arrow-left-right" class="w-5 h-5"></i> Préstamos
+      </button>
+      <button data-section="activos" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
+        <i data-lucide="book-marked" class="w-5 h-5"></i> Préstamos activos
+      </button>
+      <button data-section="disponibles" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
+        <i data-lucide="book-check" class="w-5 h-5"></i> Ejemplares disponibles
+      </button>
+    </nav>
+
+    <div class="p-4 border-t border-slate-200">
+      <div class="bg-slate-50 rounded-xl p-3 flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold">A</div>
+        <div class="min-w-0">
+          <p class="font-semibold text-sm truncate">Administrador</p>
+          <p class="text-xs text-slate-500 truncate">Sistema Biblioteca</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- OVERLAY MOBILE -->
+  <div id="sidebar-overlay" class="hidden fixed inset-0 bg-slate-950/40 z-40 lg:hidden"></div>
+
+  <!-- CONTENT -->
+  <main class="flex-1 min-w-0">
+
+    <!-- TOPBAR -->
+    <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30">
+      <div class="flex items-center gap-3">
+        <button id="menu-btn" class="lg:hidden p-2 rounded-lg hover:bg-slate-100">
+          <i data-lucide="menu" class="w-6 h-6"></i>
+        </button>
+        <div>
+          <h2 id="page-title" class="font-bold text-xl">Dashboard</h2>
+          <p id="page-subtitle" class="text-xs text-slate-500 hidden sm:block">Resumen general de la biblioteca</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button onclick="loadDashboard()" class="p-2.5 rounded-lg border border-slate-200 hover:bg-slate-50" title="Actualizar">
+          <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+        </button>
+        <span id="api-status" class="hidden sm:flex items-center gap-2 text-xs px-3 py-2 rounded-full bg-slate-100 text-slate-500">
+          <span class="w-2 h-2 rounded-full bg-slate-400"></span> API
+        </span>
+      </div>
+    </header>
+
+    <div class="p-4 sm:p-6 lg:p-8">
+
+      <!-- DASHBOARD -->
+      <section id="section-dashboard" class="app-section">
+        <div class="mb-6">
+          <h3 class="text-2xl font-extrabold">Resumen de biblioteca</h3>
+          <p class="text-slate-500 mt-1">Consulta el estado actual del sistema.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+          <div class="bg-white rounded-2xl border border-slate-200 p-5">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-slate-500">Libros</p>
+                <p id="stat-libros" class="text-3xl font-extrabold mt-1">0</p>
+              </div>
+              <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                <i data-lucide="book-open"></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200 p-5">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-slate-500">Usuarios</p>
+                <p id="stat-usuarios" class="text-3xl font-extrabold mt-1">0</p>
+              </div>
+              <div class="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center">
+                <i data-lucide="users"></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200 p-5">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-slate-500">Ejemplares</p>
+                <p id="stat-ejemplares" class="text-3xl font-extrabold mt-1">0</p>
+              </div>
+              <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <i data-lucide="copy"></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200 p-5">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-slate-500">Préstamos activos</p>
+                <p id="stat-activos" class="text-3xl font-extrabold mt-1">0</p>
+              </div>
+              <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                <i data-lucide="book-marked"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <div class="xl:col-span-2 bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <div class="p-5 border-b border-slate-200 flex items-center justify-between">
+              <div>
+                <h4 class="font-bold">Préstamos activos</h4>
+                <p class="text-xs text-slate-500 mt-1">Libros actualmente prestados</p>
+              </div>
+              <button onclick="navigate('activos')" class="text-sm text-brand-700 font-semibold hover:underline">Ver todos</button>
+            </div>
+            <div class="table-scroll overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead class="bg-slate-50 text-slate-500">
+                  <tr>
+                    <th class="text-left px-5 py-3">Libro</th>
+                    <th class="text-left px-5 py-3">Usuario</th>
+                    <th class="text-left px-5 py-3">Devolución</th>
+                  </tr>
+                </thead>
+                <tbody id="dashboard-active-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200 p-5">
+            <h4 class="font-bold">Acciones rápidas</h4>
+            <div class="mt-4 grid grid-cols-1 gap-3">
+              <button onclick="openCreate('libros')" class="quick-action"><i data-lucide="plus" class="w-4 h-4"></i> Registrar libro</button>
+              <button onclick="openCreate('usuarios')" class="quick-action"><i data-lucide="user-plus" class="w-4 h-4"></i> Registrar usuario</button>
+              <button onclick="openCreate('ejemplares')" class="quick-action"><i data-lucide="copy-plus" class="w-4 h-4"></i> Registrar ejemplar</button>
+              <button onclick="openCreate('prestamos')" class="quick-action"><i data-lucide="book-up" class="w-4 h-4"></i> Registrar préstamo</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- GENERIC SECTIONS -->
+      <section id="section-libros" class="app-section hidden"></section>
+      <section id="section-categorias" class="app-section hidden"></section>
+      <section id="section-autores" class="app-section hidden"></section>
+      <section id="section-ejemplares" class="app-section hidden"></section>
+      <section id="section-usuarios" class="app-section hidden"></section>
+      <section id="section-carnets" class="app-section hidden"></section>
+      <section id="section-prestamos" class="app-section hidden"></section>
+      <section id="section-activos" class="app-section hidden"></section>
+      <section id="section-disponibles" class="app-section hidden"></section>
+      <section id="section-autor-libro" class="app-section hidden"></section>
+
+    </div>
+  </main>
+</div>
+
+<!-- MODAL -->
+<div id="modal" class="hidden fixed inset-0 z-[80] modal-bg flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+      <div>
+        <h3 id="modal-title" class="text-lg font-bold">Formulario</h3>
+        <p id="modal-subtitle" class="text-xs text-slate-500 mt-1"></p>
+      </div>
+      <button onclick="closeModal()" class="p-2 rounded-lg hover:bg-slate-100">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+    <form id="modal-form" class="p-6 overflow-y-auto max-h-[75vh]">
+      <div id="modal-fields" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+      <div class="mt-6 flex justify-end gap-3">
+        <button type="button" onclick="closeModal()" class="px-4 py-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-sm font-semibold">Cancelar</button>
+        <button type="submit" class="px-5 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- CONFIRM -->
+<div id="confirm-modal" class="hidden fixed inset-0 z-[90] modal-bg flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+    <div class="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mb-4">
+      <i data-lucide="trash-2"></i>
+    </div>
+    <h3 class="font-bold text-lg">Confirmar eliminación</h3>
+    <p id="confirm-text" class="text-sm text-slate-500 mt-2">¿Deseas eliminar este registro?</p>
+    <div class="mt-6 flex justify-end gap-3">
+      <button onclick="closeConfirm()" class="px-4 py-2.5 rounded-lg border border-slate-200 font-semibold text-sm">Cancelar</button>
+      <button id="confirm-ok" class="px-4 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold text-sm">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   CONFIGURACIÓN
+   ========================================================= */
+const API_URL = 'http://localhost:5000';
+
+const state = {
+  currentSection: 'dashboard',
+  cache: {
+    libros: [],
+    categorias: [],
+    autores: [],
+    ejemplares: [],
+    usuarios: [],
+    carnets: [],
+    prestamos: [],
+    activos: [],
+    disponibles: [],
+    autorLibro: []
+  },
+  editing: null
+};
+
+/* =========================================================
+   API
+   ========================================================= */
+async function api(path, options = {}) {
+  const url = `${API_URL}${path}`;
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(options.headers || {})
+      },
+      ...options
+    });
+
+    const text = await response.text();
+    let data = null;
+
+    try { data = text ? JSON.parse(text) : null; }
+    catch { data = text; }
+
+    if (!response.ok) {
+      throw new Error(data?.mensaje || data?.message || `Error HTTP ${response.status}`);
+    }
+
+    setApiStatus(true);
+    return data;
+  } catch (error) {
+    setApiStatus(false);
+    throw error;
+  }
+}
+
+function setApiStatus(ok) {
+  const el = document.getElementById('api-status');
+  if (!el) return;
+
+  if (ok) {
+    el.className = 'hidden sm:flex items-center gap-2 text-xs px-3 py-2 rounded-full bg-emerald-50 text-emerald-700';
+    el.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span> API conectada';
+  } else {
+    el.className = 'hidden sm:flex items-center gap-2 text-xs px-3 py-2 rounded-full bg-red-50 text-red-700';
+    el.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500"></span> API sin conexión';
+  }
+}
+
+/* =========================================================
+   UTILIDADES
+   ========================================================= */
+const esc = value => String(value ?? '')
+  .replaceAll('&', '&amp;')
+  .replaceAll('<', '&lt;')
+  .replaceAll('>', '&gt;')
+  .replaceAll('"', '&quot;')
+  .replaceAll("'", '&#039;');
+
+const fmtDate = value => {
+  if (!value) return '-';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleDateString('es-BO');
+};
+
+const fmtDateTime = value => {
+  if (!value) return '-';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleString('es-BO');
+};
+
+const boolText = value => Boolean(value) ? 'Sí' : 'No';
+
+function badge(text, type='gray') {
+  const styles = {
+    green: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    red: 'bg-red-50 text-red-700 border-red-200',
+    yellow: 'bg-amber-50 text-amber-700 border-amber-200',
+    blue: 'bg-blue-50 text-blue-700 border-blue-200',
+    gray: 'bg-slate-50 text-slate-600 border-slate-200'
+  };
+  return `<span class="inline-flex items-center px-2.5 py-1 rounded-full border text-xs font-semibold ${styles[type] || styles.gray}">${esc(text)}</span>`;
+}
+
+function toast(message, type='success') {
+  const container = document.getElementById('toast-container');
+  const el = document.createElement('div');
+
+  const styles = type === 'success'
+    ? 'bg-emerald-600'
+    : type === 'error'
+      ? 'bg-red-600'
+      : 'bg-slate-800';
+
+  el.className = `toast ${styles} text-white rounded-xl shadow-lg px-4 py-3 flex items-start gap-3`;
+  el.innerHTML = `
+    <i data-lucide="${type === 'success' ? 'check-circle-2' : type === 'error' ? 'circle-alert' : 'info'}" class="w-5 h-5 shrink-0"></i>
+    <p class="text-sm flex-1">${esc(message)}</p>
+    <button onclick="this.parentElement.remove()"><i data-lucide="x" class="w-4 h-4"></i></button>
+  `;
+  container.appendChild(el);
+  lucide.createIcons();
+  setTimeout(() => el.remove(), 4000);
+}
+
+function emptyState(text='No hay registros') {
+  return `
+    <div class="py-12 text-center text-slate-400">
+      <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-3"></i>
+      <p class="text-sm">${esc(text)}</p>
+    </div>
+  `;
+}
+
+function loadingState() {
+  return `
+    <div class="py-12 text-center text-slate-400">
+      <i data-lucide="loader-circle" class="w-8 h-8 mx-auto mb-3 animate-spin"></i>
+      <p class="text-sm">Cargando información...</p>
+    </div>
+  `;
+}
+
+function renderIcons() {
+  lucide.createIcons();
+}
+
+/* =========================================================
+   NAVEGACIÓN
+   ========================================================= */
+const titles = {
+  dashboard: ['Dashboard', 'Resumen general de la biblioteca'],
+  libros: ['Libros', 'Administración del catálogo de libros'],
+  categorias: ['Categorías', 'Clasificación temática de los libros'],
+  autores: ['Autores', 'Administración de autores'],
+  'autor-libro': ['Autores ↔ Libros', 'Administración de relaciones'],
+  ejemplares: ['Ejemplares', 'Copias físicas disponibles en la biblioteca'],
+  usuarios: ['Usuarios', 'Administración de usuarios'],
+  carnets: ['Carnets', 'Carnets de biblioteca'],
+  prestamos: ['Préstamos', 'Registro y administración de préstamos'],
+  activos: ['Préstamos activos', 'Libros actualmente prestados'],
+  disponibles: ['Ejemplares disponibles', 'Copias que pueden ser prestadas']
+};
+
+function navigate(section) {
+  state.currentSection = section;
+
+  document.querySelectorAll('.app-section').forEach(el => el.classList.add('hidden'));
+  document.getElementById(`section-${section}`).classList.remove('hidden');
+
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.classList.remove('nav-active');
+  });
+  document.querySelector(`[data-section="${section}"]`)?.classList.add('nav-active');
+
+  document.getElementById('page-title').textContent = titles[section][0];
+  document.getElementById('page-subtitle').textContent = titles[section][1];
+
+  closeSidebar();
+
+  if (section === 'dashboard') loadDashboard();
+  else loadSection(section);
+}
+
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => navigate(btn.dataset.section));
+});
+
+document.getElementById('menu-btn').addEventListener('click', openSidebar);
+document.getElementById('sidebar-overlay').addEventListener('click', closeSidebar);
+
+function openSidebar() {
+  document.getElementById('sidebar').classList.remove('-translate-x-full');
+  document.getElementById('sidebar-overlay').classList.remove('hidden');
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.add('-translate-x-full');
+  document.getElementById('sidebar-overlay').classList.add('hidden');
+}
+
+/* =========================================================
+   CARGA DE DATOS
+   ========================================================= */
+async function loadData(key, endpoint) {
+  const data = await api(endpoint);
+  state.cache[key] = Array.isArray(data) ? data : [];
+  return state.cache[key];
+}
+
+async function loadDashboard() {
+  try {
+    const [libros, usuarios, ejemplares, activos] = await Promise.all([
+      loadData('libros', '/libro'),
+      loadData('usuarios', '/usuario'),
+      loadData('ejemplares', '/ejemplar'),
+      loadData('activos', '/prestamos/activos')
+    ]);
+
+    document.getElementById('stat-libros').textContent = libros.length;
+    document.getElementById('stat-usuarios').textContent = usuarios.length;
+    document.getElementById('stat-ejemplares').textContent = ejemplares.length;
+    document.getElementById('stat-activos').textContent = activos.length;
+
+    const body = document.getElementById('dashboard-active-body');
+    body.innerHTML = activos.length
+      ? activos.slice(0, 6).map(p => `
+        <tr class="border-t border-slate-100">
+          <td class="px-5 py-3">
+            <p class="font-semibold">${esc(p.titulo)}</p>
+            <p class="text-xs text-slate-400">${esc(p.isbn)}</p>
+          </td>
+          <td class="px-5 py-3">${esc(p.nombres)} ${esc(p.apellidos)}</td>
+          <td class="px-5 py-3">${fmtDate(p.fecha_devolucion)}</td>
+        </tr>
+      `).join('')
+      : `<tr><td colspan="3">${emptyState('No existen préstamos activos')}</td></tr>`;
+
+    renderIcons();
+  } catch (error) {
+    toast(error.message, 'error');
+  }
+}
+
+async function loadSection(section) {
+  const container = document.getElementById(`section-${section}`);
+  container.innerHTML = loadingState();
+  renderIcons();
+
+  try {
+    switch (section) {
+      case 'libros':
+        await loadData('libros', '/libro');
+        await loadData('categorias', '/categoria');
+        renderLibros();
+        break;
+      case 'categorias':
+        await loadData('categorias', '/categoria');
+        renderCategorias();
+        break;
+      case 'autores':
+        await loadData('autores', '/autor');
+        renderAutores();
+        break;
+      case 'autor-libro':
+        await Promise.all([
+          loadData('autorLibro', '/autor-libro'),
+          loadData('libros', '/libro'),
+          loadData('autores', '/autor')
+        ]);
+        renderAutorLibro();
+        break;
+      case 'ejemplares':
+        await Promise.all([
+          loadData('ejemplares', '/ejemplar'),
+          loadData('libros', '/libro')
+        ]);
+        renderEjemplares();
+        break;
+      case 'usuarios':
+        await loadData('usuarios', '/usuario');
+        renderUsuarios();
+        break;
+      case 'carnets':
+        await Promise.all([
+          loadData('carnets', '/carnet'),
+          loadData('usuarios', '/usuario')
+        ]);
+        renderCarnets();
+        break;
+      case 'prestamos':
+        await Promise.all([
+          loadData('prestamos', '/prestamo'),
+          loadData('usuarios', '/usuario'),
+          loadData('disponibles', '/ejemplares/disponibles')
+        ]);
+        renderPrestamos();
+        break;
+      case 'activos':
+        await loadData('activos', '/prestamos/activos');
+        renderActivos();
+        break;
+      case 'disponibles':
+        await loadData('disponibles', '/ejemplares/disponibles');
+        renderDisponibles();
+        break;
+    }
+    renderIcons();
+  } catch (error) {
+    container.innerHTML = `
+      <div class="bg-white border border-red-200 rounded-2xl p-8 text-center">
+        <i data-lucide="circle-alert" class="w-10 h-10 mx-auto text-red-500 mb-3"></i>
+        <h3 class="font-bold">No se pudo cargar la información</h3>
+        <p class="text-sm text-slate-500 mt-2">${esc(error.message)}</p>
+        <button onclick="loadSection('${section}')" class="mt-4 px-4 py-2 bg-brand-600 text-white rounded-lg text-sm font-semibold">Reintentar</button>
+      </div>`;
+    renderIcons();
+  }
+}
+
+/* =========================================================
+   LAYOUTS
+   ========================================================= */
+function sectionHeader(title, description, buttonText, buttonAction) {
+  return `
+    <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h3 class="text-2xl font-extrabold">${esc(title)}</h3>
+        <p class="text-slate-500 mt-1">${esc(description)}</p>
+      </div>
+      ${buttonText ? `<button onclick="${buttonAction}" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold">
+        <i data-lucide="plus" class="w-4 h-4"></i>${esc(buttonText)}
+      </button>` : ''}
+    </div>
+  `;
+}
+
+function toolbar(inputId, placeholder='Buscar...') {
+  return `
+    <div class="flex flex-col sm:flex-row gap-3 p-4 border-b border-slate-200">
+      <div class="relative flex-1">
+        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+        <input id="${inputId}" oninput="filterTable('${inputId}')" type="search" placeholder="${placeholder}"
+          class="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-sm">
+      </div>
+      <button onclick="refreshCurrent()" class="px-4 py-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-sm font-semibold flex items-center justify-center gap-2">
+        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Actualizar
+      </button>
+    </div>
+  `;
+}
+
+function tableShell(tableId, headers, bodyHtml) {
+  return `
+    <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+      ${toolbar(`${tableId}-search`)}
+      <div class="table-scroll overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 text-slate-500">
+            <tr>${headers.map(h => `<th class="text-left px-5 py-3 font-semibold whitespace-nowrap">${h}</th>`).join('')}</tr>
+          </thead>
+          <tbody id="${tableId}">${bodyHtml}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function actionButtons(section, id, extra='') {
+  return `
+    <div class="flex items-center gap-1">
+      <button onclick="openEdit('${section}', ${Number(id)})" class="p-2 rounded-lg text-slate-500 hover:bg-blue-50 hover:text-blue-600" title="Editar">
+        <i data-lucide="pencil" class="w-4 h-4"></i>
+      </button>
+      <button onclick="confirmDelete('${section}', ${Number(id)})" class="p-2 rounded-lg text-slate-500 hover:bg-red-50 hover:text-red-600" title="Eliminar">
+        <i data-lucide="trash-2" class="w-4 h-4"></i>
+      </button>
+      ${extra}
+    </div>
+  `;
+}
+
+function filterTable(inputId) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const table = input.closest('.bg-white').querySelector('tbody');
+  const term = input.value.toLowerCase().trim();
+
+  [...table.querySelectorAll('tr')].forEach(row => {
+    row.style.display = row.innerText.toLowerCase().includes(term) ? '' : 'none';
+  });
+}
+
+function refreshCurrent() {
+  if (state.currentSection === 'dashboard') loadDashboard();
+  else loadSection(state.currentSection);
+}
+
+/* =========================================================
+   LIBROS
+   ========================================================= */
+function renderLibros() {
+  const c = document.getElementById('section-libros');
+  const rows = state.cache.libros;
+
+  c.innerHTML = sectionHeader('Libros', 'Administra los libros registrados en el catálogo.', 'Nuevo libro', "openCreate('libros')")
+    + tableShell(
+      'libros-table',
+      ['ID', 'Título', 'Editorial', 'Año', 'Categoría', 'Páginas', 'Acciones'],
+      rows.length ? rows.map(l => `
+        <tr class="border-t border-slate-100 hover:bg-slate-50">
+          <td class="px-5 py-3 font-mono text-xs">${l.id}</td>
+          <td class="px-5 py-3 font-semibold">${esc(l.titulo)}</td>
+          <td class="px-5 py-3">${esc(l.editorial)}</td>
+          <td class="px-5 py-3">${esc(l.anio_publicacion)}</td>
+          <td class="px-5 py-3">${esc(categoryName(l.categoria_id))}</td>
+          <td class="px-5 py-3">${esc(l.numero_pagina)}</td>
+          <td class="px-5 py-3">${actionButtons('libros', l.id)}</td>
+        </tr>`).join('') : `<tr><td colspan="7">${emptyState()}</td></tr>`
+    );
+}
+
+/* =========================================================
+   CATEGORÍAS
+   ========================================================= */
+function renderCategorias() {
+  const c = document.getElementById('section-categorias');
+  const rows = state.cache.categorias;
+
+  c.innerHTML = sectionHeader('Categorías', 'Gestiona las categorías del catálogo.', 'Nueva categoría', "openCreate('categorias')")
+    + tableShell(
+      'categorias-table',
+      ['ID', 'Nombre', 'Descripción', 'Acciones'],
+      rows.length ? rows.map(x => `
+        <tr class="border-t border-slate-100 hover:bg-slate-50">
+          <td class="px-5 py-3 font-mono text-xs">${x.id}</td>
+          <td class="px-5 py-3 font-semibold">${esc(x.nombre)}</td>
+          <td class="px-5 py-3 max-w-xl">${esc(x.descripcion)}</td>
+          <td class="px-5 py-3">${actionButtons('categorias', x.id)}</td>
+        </tr>`).join('') : `<tr><td colspan="4">${emptyState()}</td></tr>`
+    );
+}
+
+/* =========================================================
+   AUTORES
+   ========================================================= */
+function renderAutores() {
+  const c = document.getElementById('section-autores');
+  const rows = state.cache.autores;
+
+  c.innerHTML = sectionHeader('Autores', 'Gestiona los autores registrados.', 'Nuevo autor', "openCreate('autores')")
+    + tableShell(
+      'autores-table',
+      ['ID', 'Nombres', 'Apellidos', 'Nacionalidad', 'Fecha nacimiento', 'Acciones'],
+      rows.length ? rows.map(x => `
+        <tr class="border-t border-slate-100 hover:bg-slate-50">
+          <td class="px-5 py-3 font-mono text-xs">${x.id}</td>
+          <td class="px-5 py-3 font-semibold">${esc(x.nombres)}</td>
+          <td class="px-5 py-3">${esc(x.apellidos)}</td>
+          <td class="px-5 py-3">${esc(x.nacionalidad)}</td>
+          <td class="px-5 py-3">${fmtDate(x.fecha_nac)}</td>
+          <td class="px-5 py-3">${actionButtons('autores', x.id)}</td>
+        </tr>`).join('') : `<tr><td colspan="6">${emptyState()}</td></tr>`
+    );
+}
+
+/* =========================================================
+   AUTOR - LIBRO
+   ========================================================= */
+function renderAutorLibro() {
+  const c = document.getElementById('section-autor-libro');
+  const relations = state.cache.autorLibro;
+
+  c.innerHTML = sectionHeader('Autores ↔ Libros', 'Asigna o elimina autores asociados a libros.', 'Asignar autor', "openCreate('autor-libro')")
+    + `
+    <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+      ${toolbar('autor-libro-search')}
+      <div class="table-scroll overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 text-slate-500">
+            <tr>
+              <th class="text-left px-5 py-3">Libro ID</th>
+              <th class="text-left px-5 py-3">Libro</th>
+              <th class="text-left px-5 py-3">Autor ID</th>
+              <th class="text-left px-5 py-3">Autor</th>
+              <th class="text-left px-5 py-3">Acción</th>
+            </tr>
+          </thead>
+          <tbody id="autor-libro-table">
+            ${relations.length ? relations.map(r => {
+              const libro = state.cache.libros.find(l => Number(l.id) === Number(r.libro_id));
+              const autor = state.cache.autores.find(a => Number(a.id) === Number(r.autor_id));
+              return `
+                <tr class="border-t border-slate-100">
+                  <td class="px-5 py-3">${r.libro_id}</td>
+                  <td class="px-5 py-3 font-semibold">${esc(libro?.titulo || 'Libro no encontrado')}</td>
+                  <td class="px-5 py-3">${r.autor_id}</td>
+                  <td class="px-5 py-3">${esc(autor ? `${autor.nombres} ${autor.apellidos}` : 'Autor no encontrado')}</td>
+                  <td class="px-5 py-3">
+                    <button onclick="deleteRelation(${r.libro_id}, ${r.autor_id})" class="p-2 rounded-lg text-red-600 hover:bg-red-50" title="Eliminar relación">
+                      <i data-lucide="unlink" class="w-4 h-4"></i>
+                    </button>
+                  </td>
+                </tr>`;
+            }).join('') : `<tr><td colspan="5">${emptyState('No existen relaciones registradas')}</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+/* =========================================================
+   EJEMPLARES
+   ========================================================= */
+function renderEjemplares() {
+  const c = document.getElementById('section-ejemplares');
+  const rows = state.cache.ejemplares;
+
+  c.innerHTML = sectionHeader('Ejemplares', 'Gestiona las copias físicas de los libros.', 'Nuevo ejemplar', "openCreate('ejemplares')")
+    + tableShell(
+      'ejemplares-table',
+      ['ID', 'ISBN', 'Libro', 'Ubicación', 'Estado físico', 'Disponible', 'Acciones'],
+      rows.length ? rows.map(x => `
+        <tr class="border-t border-slate-100 hover:bg-slate-50">
+          <td class="px-5 py-3 font-mono text-xs">${x.id}</td>
+          <td class="px-5 py-3 font-mono">${esc(x.isbn)}</td>
+          <td class="px-5 py-3 font-semibold">${esc(bookName(x.libro_id))}</td>
+          <td class="px-5 py-3">${esc(x.ubicacion)}</td>
+          <td class="px-5 py-3">${esc(x.estado_fisico_libro)}</td>
+          <td class="px-5 py-3">${x.disponible ? badge('Disponible', 'green') : badge('Prestado', 'red')}</td>
+          <td class="px-5 py-3">${actionButtons('ejemplares', x.id)}</td>
+        </tr>`).join('') : `<tr><td colspan="7">${emptyState()}</td></tr>`
+    );
+}
+
+/* =========================================================
+   USUARIOS
+   ========================================================= */
+function renderUsuarios() {
+  const c = document.getElementById('section-usuarios');
+  const rows = state.cache.usuarios;
+
+  c.innerHTML = sectionHeader('Usuarios', 'Administra los usuarios de la biblioteca.', 'Nuevo usuario', "openCreate('usuarios')")
+    + tableShell(
+      'usuarios-table',
+      ['ID', 'Usuario', 'Documento', 'Teléfono', 'Correo', 'Género', 'Estado', 'Acciones'],
+      rows.length ? rows.map(x => `
+        <tr class="border-t border-slate-100 hover:bg-slate-50">
+          <td class="px-5 py-3 font-mono text-xs">${x.id}</td>
+          <td class="px-5 py-3">
+            <p class="font-semibold">${esc(x.nombres)} ${esc(x.apellidos)}</p>
+          </td>
+          <td class="px-5 py-3">${esc(x.nro_documento)}</td>
+          <td class="px-5 py-3">${esc(x.telefono)}</td>
+          <td class="px-5 py-3">${esc(x.correo)}</td>
+          <td class="px-5 py-3">${esc(x.genero)}</td>
+          <td class="px-5 py-3">${x.estado ? badge('Activo', 'green') : badge('Inactivo', 'red')}</td>
+          <td class="px-5 py-3">
+            ${actionButtons('usuarios', x.id, `
+              <button onclick="viewUserLoans(${x.id})" class="p-2 rounded-lg text-slate-500 hover:bg-violet-50 hover:text-violet-600" title="Préstamos">
+                <i data-lucide="history" class="w-4 h-4"></i>
+              </button>`)}
+          </td>
+        </tr>`).join('') : `<tr><td colspan="8">${emptyState()}</td></tr>`
+    );
+}
+
+/* =========================================================
+   CARNETS
+   ========================================================= */
+function renderCarnets() {
+  const c = document.getElementById('section-carnets');
+  const rows = state.cache.carnets;
+
+  c.innerHTML = sectionHeader('Carnets', 'Gestiona los carnets asociados a usuarios.', 'Nuevo carnet', "openCreate('carnets')")
+    + tableShell(
+      'carnets-table',
+      ['ID', 'Kardex', 'Usuario', 'Emisión', 'Caducidad', 'Estado', 'Acciones'],
+      rows.length ? rows.map(x => `
+        <tr class="border-t border-slate-100 hover:bg-slate-50">
+          <td class="px-5 py-3 font-mono text-xs">${x.id}</td>
+          <td class="px-5 py-3 font-semibold">${esc(x.nro_kardex)}</td>
+          <td class="px-5 py-3">${esc(userName(x.usuario_id))}</td>
+          <td class="px-5 py-3">${fmtDate(x.fecha_emision)}</td>
+          <td class="px-5 py-3">${fmtDate(x.fecha_caducidad)}</td>
+          <td class="px-5 py-3">${badge(x.estado || '-', String(x.estado).toLowerCase() === 'activo' ? 'green' : 'gray')}</td>
+          <td class="px-5 py-3">${actionButtons('carnets', x.id)}</td>
+        </tr>`).join('') : `<tr><td colspan="7">${emptyState()}</td></tr>`
+    );
+}
+
+/* =========================================================
+   PRÉSTAMOS
+   ========================================================= */
+function renderPrestamos() {
+  const c = document.getElementById('section-prestamos');
+  const rows = state.cache.prestamos;
+
+  c.innerHTML = sectionHeader('Préstamos', 'Registra y administra préstamos de ejemplares.', 'Nuevo préstamo', "openCreate('prestamos')")
+    + tableShell(
+      'prestamos-table',
+      ['ID', 'Ejemplar', 'Usuario', 'Préstamo', 'Devolución', 'Devolución real', 'Estado', 'Acciones'],
+      rows.length ? rows.map(x => `
+        <tr class="border-t border-slate-100 hover:bg-slate-50">
+          <td class="px-5 py-3 font-mono text-xs">${x.id}</td>
+          <td class="px-5 py-3">${esc(exampleName(x.ejemplar_id))}</td>
+          <td class="px-5 py-3">${esc(userName(x.usuario_id))}</td>
+          <td class="px-5 py-3">${fmtDate(x.fecha_prestamo)}</td>
+          <td class="px-5 py-3">${fmtDate(x.fecha_devolucion)}</td>
+          <td class="px-5 py-3">${fmtDate(x.fecha_devolucion_real)}</td>
+          <td class="px-5 py-3">${x.estado_prestamo ? badge('Activo', 'yellow') : badge('Devuelto', 'green')}</td>
+          <td class="px-5 py-3">
+            ${actionButtons('prestamos', x.id, x.estado_prestamo ? `
+              <button onclick="returnLoan(${x.id})" class="p-2 rounded-lg text-slate-500 hover:bg-emerald-50 hover:text-emerald-600" title="Devolver">
+                <i data-lucide="package-check" class="w-4 h-4"></i>
+              </button>` : '')}
+          </td>
+        </tr>`).join('') : `<tr><td colspan="8">${emptyState()}</td></tr>`
+    );
+}
+
+/* =========================================================
+   PRÉSTAMOS ACTIVOS
+   ========================================================= */
+function renderActivos() {
+  const c = document.getElementById('section-activos');
+  const rows = state.cache.activos;
+
+  c.innerHTML = sectionHeader('Préstamos activos', 'Listado generado por /prestamos/activos.', null, null)
+    + tableShell(
+      'activos-table',
+      ['ID', 'Libro', 'ISBN', 'Usuario', 'Fecha préstamo', 'Fecha devolución', 'Acción'],
+      rows.length ? rows.map(x => `
+        <tr class="border-t border-slate-100 hover:bg-slate-50">
+          <td class="px-5 py-3">${x.id}</td>
+          <td class="px-5 py-3 font-semibold">${esc(x.titulo)}</td>
+          <td class="px-5 py-3 font-mono">${esc(x.isbn)}</td>
+          <td class="px-5 py-3">${esc(x.nombres)} ${esc(x.apellidos)}</td>
+          <td class="px-5 py-3">${fmtDate(x.fecha_prestamo)}</td>
+          <td class="px-5 py-3">${fmtDate(x.fecha_devolucion)}</td>
+          <td class="px-5 py-3">
+            <button onclick="returnLoan(${x.id})" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-semibold">
+              <i data-lucide="package-check" class="w-4 h-4"></i> Devolver
+            </button>
+          </td>
+        </tr>`).join('') : `<tr><td colspan="7">${emptyState('No existen préstamos activos')}</td></tr>`
+    );
+}
+
+/* =========================================================
+   DISPONIBLES
+   ========================================================= */
+function renderDisponibles() {
+  const c = document.getElementById('section-disponibles');
+  const rows = state.cache.disponibles;
+
+  c.innerHTML = sectionHeader('Ejemplares disponibles', 'Listado generado por /ejemplares/disponibles.', null, null)
+    + tableShell(
+      'disponibles-table',
+      ['ID', 'ISBN', 'Libro', 'Ubicación', 'Estado físico'],
+      rows.length ? rows.map(x => `
+        <tr class="border-t border-slate-100 hover:bg-slate-50">
+          <td class="px-5 py-3">${x.id}</td>
+          <td class="px-5 py-3 font-mono">${esc(x.isbn)}</td>
+          <td class="px-5 py-3 font-semibold">${esc(x.titulo)}</td>
+          <td class="px-5 py-3">${esc(x.ubicacion)}</td>
+          <td class="px-5 py-3">${esc(x.estado_fisico_libro)}</td>
+        </tr>`).join('') : `<tr><td colspan="5">${emptyState('No existen ejemplares disponibles')}</td></tr>`
+    );
+}
+
+/* =========================================================
+   HELPERS RELACIONADOS
+   ========================================================= */
+function categoryName(id) {
+  return state.cache.categorias.find(x => Number(x.id) === Number(id))?.nombre || `ID ${id}`;
+}
+
+function bookName(id) {
+  return state.cache.libros.find(x => Number(x.id) === Number(id))?.titulo || `ID ${id}`;
+}
+
+function userName(id) {
+  const u = state.cache.usuarios.find(x => Number(x.id) === Number(id));
+  return u ? `${u.nombres} ${u.apellidos}` : `ID ${id}`;
+}
+
+function exampleName(id) {
+  const e = state.cache.ejemplares.find(x => Number(x.id) === Number(id));
+  return e ? `${e.isbn} — ${bookName(e.libro_id)}` : `ID ${id}`;
+}
+
+/* =========================================================
+   FORMULARIOS
+   ========================================================= */
+const forms = {
+  libros: {
+    title: 'Libro',
+    endpoint: '/libro',
+    fields: [
+      ['titulo', 'Título', 'text', true],
+      ['anio_publicacion', 'Año de publicación', 'number', true],
+      ['editorial', 'Editorial', 'text', true],
+      ['categoria_id', 'Categoría', 'select', true, () => state.cache.categorias.map(x => [x.id, x.nombre])],
+      ['numero_pagina', 'Número de páginas', 'number', true]
+    ]
+  },
+  categorias: {
+    title: 'Categoría',
+    endpoint: '/categoria',
+    fields: [
+      ['nombre', 'Nombre', 'text', true],
+      ['descripcion', 'Descripción', 'textarea', true]
+    ]
+  },
+  autores: {
+    title: 'Autor',
+    endpoint: '/autor',
+    fields: [
+      ['nombres', 'Nombres', 'text', true],
+      ['apellidos', 'Apellidos', 'text', true],
+      ['nacionalidad', 'Nacionalidad', 'text', true],
+      ['fecha_nac', 'Fecha de nacimiento', 'date', true]
+    ]
+  },
+  ejemplares: {
+    title: 'Ejemplar',
+    endpoint: '/ejemplar',
+    fields: [
+      ['isbn', 'ISBN', 'text', true],
+      ['ubicacion', 'Ubicación', 'text', true],
+      ['estado_fisico_libro', 'Estado físico', 'text', true],
+      ['libro_id', 'Libro', 'select', true, () => state.cache.libros.map(x => [x.id, x.titulo])],
+      ['disponible', 'Disponible', 'checkbox', true]
+    ]
+  },
+  usuarios: {
+    title: 'Usuario',
+    endpoint: '/usuario',
+    fields: [
+      ['nombres', 'Nombres', 'text', true],
+      ['apellidos', 'Apellidos', 'text', true],
+      ['nro_documento', 'Nro. documento', 'text', true],
+      ['telefono', 'Teléfono', 'text', true],
+      ['correo', 'Correo', 'email', true],
+      ['genero', 'Género', 'text', true],
+      ['estado', 'Estado', 'checkbox', true]
+    ]
+  },
+  carnets: {
+    title: 'Carnet',
+    endpoint: '/carnet',
+    fields: [
+      ['nro_kardex', 'Nro. kardex', 'text', true],
+      ['fecha_emision', 'Fecha de emisión', 'date', true],
+      ['fecha_caducidad', 'Fecha de caducidad', 'date', true],
+      ['estado', 'Estado', 'text', true],
+      ['usuario_id', 'Usuario', 'select', true, () => state.cache.usuarios.map(x => [x.id, `${x.nombres} ${x.apellidos}`])]
+    ]
+  },
+  prestamos: {
+    title: 'Préstamo',
+    endpoint: '/prestamo',
+    fields: [
+      ['ejemplar_id', 'Ejemplar disponible', 'select', true, () => state.cache.disponibles.map(x => [x.id, `${x.titulo} — ${x.isbn}`])],
+      ['usuario_id', 'Usuario', 'select', true, () => state.cache.usuarios.filter(x => x.estado).map(x => [x.id, `${x.nombres} ${x.apellidos}`])],
+      ['fecha_prestamo', 'Fecha de préstamo', 'date', true],
+      ['fecha_devolucion', 'Fecha de devolución', 'date', true],
+      ['fecha_devolucion_real', 'Fecha devolución real', 'date', false],
+      ['estado_prestamo', 'Préstamo activo', 'checkbox', true]
+    ]
+  },
+  'autor-libro': {
+    title: 'Asignar autor a libro',
+    endpoint: '/autor-libro',
+    fields: [
+      ['libro_id', 'Libro', 'select', true, () => state.cache.libros.map(x => [x.id, x.titulo])],
+      ['autor_id', 'Autor', 'select', true, () => state.cache.autores.map(x => [x.id, `${x.nombres} ${x.apellidos}`])]
+    ]
+  }
+};
+
+function renderField(field, value, editing=false) {
+  const [name, label, type, required, optionsFn] = field;
+  const id = `field-${name}`;
+
+  if (type === 'textarea') {
+    return `
+      <div class="md:col-span-2">
+        <label class="form-label">${esc(label)}</label>
+        <textarea id="${id}" name="${name}" ${required ? 'required' : ''} rows="4"
+          class="form-input">${esc(value)}</textarea>
+      </div>`;
+  }
+
+  if (type === 'select') {
+    const options = optionsFn ? optionsFn() : [];
+    return `
+      <div>
+        <label class="form-label">${esc(label)}</label>
+        <select id="${id}" name="${name}" ${required ? 'required' : ''} class="form-input">
+          <option value="">Seleccione...</option>
+          ${options.map(([id, text]) => `<option value="${id}" ${String(value) === String(id) ? 'selected' : ''}>${esc(text)}</option>`).join('')}
+        </select>
+      </div>`;
+  }
+
+  if (type === 'checkbox') {
+    return `
+      <div class="flex items-center gap-3 border border-slate-200 rounded-lg px-4 py-3 mt-6">
+        <input id="${id}" name="${name}" type="checkbox" ${Boolean(value) ? 'checked' : ''}
+          class="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+        <label for="${id}" class="text-sm font-semibold">${esc(label)}</label>
+      </div>`;
+  }
+
+  return `
+    <div>
+      <label class="form-label">${esc(label)}</label>
+      <input id="${id}" name="${name}" type="${type}" value="${esc(value)}" ${required ? 'required' : ''}
+        class="form-input">
+    </div>`;
+}
+
+function openCreate(section) {
+  const config = forms[section];
+  if (!config) return;
+
+  state.editing = { section, id: null };
+
+  document.getElementById('modal-title').textContent = `Nuevo ${config.title}`;
+  document.getElementById('modal-subtitle').textContent = 'Completa la información solicitada.';
+
+  document.getElementById('modal-fields').innerHTML = config.fields
+    .map(field => renderField(field, field[2] === 'checkbox' ? (section === 'prestamos' ? true : false) : '', false))
+    .join('');
+
+  document.getElementById('modal').classList.remove('hidden');
+  renderIcons();
+}
+
+function openEdit(section, id) {
+  const config = forms[section];
+  if (!config) return;
+
+  const item = state.cache[section]?.find(x => Number(x.id) === Number(id));
+  if (!item) {
+    toast('No se encontró el registro.', 'error');
+    return;
+  }
+
+  state.editing = { section, id };
+
+  document.getElementById('modal-title').textContent = `Editar ${config.title}`;
+  document.getElementById('modal-subtitle').textContent = `Registro #${id}`;
+
+  document.getElementById('modal-fields').innerHTML = config.fields
+    .map(field => renderField(field, item[field[0]], true))
+    .join('');
+
+  document.getElementById('modal').classList.remove('hidden');
+  renderIcons();
+}
+
+document.getElementById('modal-form').addEventListener('submit', async event => {
+  event.preventDefault();
+
+  const { section, id } = state.editing;
+  const config = forms[section];
+  const formData = new FormData(event.target);
+  const payload = {};
+
+  config.fields.forEach(([name, label, type]) => {
+    if (type === 'checkbox') {
+      payload[name] = document.getElementById(`field-${name}`).checked;
+    } else {
+      let value = formData.get(name);
+
+      if (['number', 'select'].includes(type) && value !== '') {
+        value = Number(value);
+      }
+
+      payload[name] = value === '' ? null : value;
+    }
+  });
+
+  try {
+    const path = id ? `${config.endpoint}/${id}` : config.endpoint;
+    const method = id ? 'PUT' : 'POST';
+
+    await api(path, {
+      method,
+      body: JSON.stringify(payload)
+    });
+
+    closeModal();
+    toast(id ? 'Registro modificado correctamente.' : 'Registro registrado correctamente.');
+    await loadSection(section);
+  } catch (error) {
+    toast(error.message, 'error');
+  }
+});
+
+function closeModal() {
+  document.getElementById('modal').classList.add('hidden');
+  document.getElementById('modal-form').reset();
+  state.editing = null;
+}
+
+/* =========================================================
+   ELIMINACIÓN
+   ========================================================= */
+let pendingDelete = null;
+
+function confirmDelete(section, id) {
+  pendingDelete = { section, id };
+  const config = forms[section];
+
+  document.getElementById('confirm-text').textContent =
+    `¿Deseas eliminar el registro #${id} de ${config?.title || section}? Esta acción no se puede deshacer.`;
+
+  document.getElementById('confirm-modal').classList.remove('hidden');
+  renderIcons();
+}
+
+document.getElementById('confirm-ok').addEventListener('click', async () => {
+  if (!pendingDelete) return;
+
+  const { section, id } = pendingDelete;
+  const config = forms[section];
+
+  try {
+    await api(`${config.endpoint}/${id}`, { method: 'DELETE' });
+    closeConfirm();
+    toast('Registro eliminado correctamente.');
+    await loadSection(section);
+  } catch (error) {
+    toast(error.message, 'error');
+  }
+});
+
+function closeConfirm() {
+  document.getElementById('confirm-modal').classList.add('hidden');
+  pendingDelete = null;
+}
+
+/* =========================================================
+   RELACIÓN AUTOR-LIBRO
+   ========================================================= */
+async function deleteRelation(libroId, autorId) {
+  try {
+    await api(`/autor-libro/${libroId}/${autorId}`, { method: 'DELETE' });
+    toast('Relación eliminada correctamente.');
+    await loadSection('autor-libro');
+  } catch (error) {
+    toast(error.message, 'error');
+  }
+}
+
+/* =========================================================
+   DEVOLVER PRÉSTAMO
+   ========================================================= */
+async function returnLoan(id) {
+  if (!confirm(`¿Confirmas la devolución del préstamo #${id}?`)) return;
+
+  try {
+    await api(`/prestamo/${id}/devolver`, { method: 'PUT' });
+    toast('Libro devuelto correctamente.');
+    await loadSection(state.currentSection === 'dashboard' ? 'dashboard' : state.currentSection);
+
+    if (state.currentSection !== 'dashboard') {
+      await loadDashboard();
+    }
+  } catch (error) {
+    toast(error.message, 'error');
+  }
+}
+
+/* =========================================================
+   PRÉSTAMOS DE USUARIO
+   ========================================================= */
+async function viewUserLoans(userId) {
+  try {
+    const loans = await api(`/usuario/${userId}/prestamos`);
+    const user = state.cache.usuarios.find(x => Number(x.id) === Number(userId));
+
+    document.getElementById('modal-title').textContent = 'Historial de préstamos';
+    document.getElementById('modal-subtitle').textContent =
+      user ? `${user.nombres} ${user.apellidos}` : `Usuario #${userId}`;
+
+    document.getElementById('modal-fields').innerHTML = `
+      <div class="md:col-span-2">
+        ${loans.length ? `
+          <div class="border border-slate-200 rounded-xl overflow-hidden">
+            <div class="table-scroll overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead class="bg-slate-50">
+                  <tr>
+                    <th class="text-left px-4 py-3">Libro</th>
+                    <th class="text-left px-4 py-3">ISBN</th>
+                    <th class="text-left px-4 py-3">Préstamo</th>
+                    <th class="text-left px-4 py-3">Devolución</th>
+                    <th class="text-left px-4 py-3">Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${loans.map(l => `
+                    <tr class="border-t border-slate-100">
+                      <td class="px-4 py-3 font-semibold">${esc(l.titulo)}</td>
+                      <td class="px-4 py-3 font-mono">${esc(l.isbn)}</td>
+                      <td class="px-4 py-3">${fmtDate(l.fecha_prestamo)}</td>
+                      <td class="px-4 py-3">${fmtDate(l.fecha_devolucion_real || l.fecha_devolucion)}</td>
+                      <td class="px-4 py-3">${l.estado_prestamo ? badge('Activo', 'yellow') : badge('Devuelto', 'green')}</td>
+                    </tr>`).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>` : emptyState('Este usuario no tiene préstamos registrados')}
+      </div>
+    `;
+
+    document.querySelector('#modal-form .flex.justify-end').classList.add('hidden');
+    document.getElementById('modal').classList.remove('hidden');
+    renderIcons();
+  } catch (error) {
+    toast(error.message, 'error');
+  }
+}
+
+/* Restaurar botones del modal cuando se usa para formularios */
+const originalModalFooter = document.querySelector('#modal-form .flex.justify-end');
+const observer = new MutationObserver(() => {});
+function restoreModalFooter() {
+  originalModalFooter.classList.remove('hidden');
+}
+
+/* =========================================================
+   ESTILOS DE FORMULARIOS
+   ========================================================= */
+const style = document.createElement('style');
+style.textContent = `
+  .form-label {
+    display: block;
+    margin-bottom: .4rem;
+    font-size: .875rem;
+    font-weight: 600;
+    color: #334155;
+  }
+  .form-input {
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: .5rem;
+    padding: .65rem .8rem;
+    outline: none;
+    background: white;
+    font-size: .875rem;
+  }
+  .form-input:focus {
+    border-color: #0ea5e9;
+    box-shadow: 0 0 0 3px rgba(14,165,233,.12);
+  }
+  .quick-action {
+    display:flex;
+    align-items:center;
+    gap:.6rem;
+    width:100%;
+    padding:.75rem 1rem;
+    border:1px solid #e2e8f0;
+    border-radius:.75rem;
+    font-size:.875rem;
+    font-weight:600;
+    text-align:left;
+    transition:.2s;
+  }
+  .quick-action:hover {
+    background:#f8fafc;
+    border-color:#bae6fd;
+    color:#0369a1;
+  }
+`;
+document.head.appendChild(style);
+
+/* Modal click outside */
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target.id === 'modal') closeModal();
+});
+document.getElementById('confirm-modal').addEventListener('click', e => {
+  if (e.target.id === 'confirm-modal') closeConfirm();
+});
+
+/* =========================================================
+   INICIO
+   ========================================================= */
+(async function init() {
+  renderIcons();
+  await loadDashboard();
+})();
+</script>
+
+</body>
+</html>
