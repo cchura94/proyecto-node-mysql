@@ -1,0 +1,30 @@
+GET http://127.0.0.1:5000/libro
+
+### guardar
+POST http://127.0.0.1:5000/libro
+Content-Type: application/json
+
+{
+    "titulo": "PRUEBA LIBRO 2",
+    "anio_publicacion": 2027,
+    "editorial": "PRUEBA 2",
+    "categoria_id": 1,
+    "numero_pagina": 35
+}
+
+### mostra
+GET http://127.0.0.1:5000/libro/2
+
+### modificar
+PUT http://127.0.0.1:5000/libro/7
+Content-Type: application/json
+
+{
+    "titulo": "PRUEBA LIBRO 2 MODIFICADO",
+    "anio_publicacion": 2027,
+    "editorial": "PRUEBA 2",
+    "categoria_id": 1,
+    "numero_pagina": 36
+}
+### elimnnar
+DELETE http://127.0.0.1:5000/libro/7
